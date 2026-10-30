@@ -1,3 +1,19 @@
+Tidak ada yang dipilih
+
+Lewatkan ke konten
+Menggunakan Gmail dengan pembaca layar
+Percakapan
+Mulai menggunakan Gmail
+Sesuaikan kotak masuk Anda
+Ubah foto profil
+Impor kontak dan email
+Dapatkan Gmail untuk seluler
+0% dari 5 GB digunakan
+Persyaratan · Privasi · Kebijakan Program
+Aktivitas akun terakhir: 0 menit yang lalu
+Saat ini sedang digunakan di 2 lokasi lainnya · Detail
+index-1.html
+100%
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -89,7 +105,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .paybox .amt{border-top:1px solid var(--line);padding-top:10px;margin:10px 0 0;font-size:.9rem}
 .btn{font:inherit;font-weight:700;border:0;border-radius:99px;cursor:pointer;min-height:36px;padding:6px 16px;font-size:.82rem}
 .btn.y{background:var(--y);color:var(--ink)}.btn.c{background:var(--c);color:#04212a}
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:1000;padding:0 14px calc(10px + env(safe-area-inset-bottom,0px))}
 #err{max-width:600px;margin:0 auto 8px;background:#ffe3e6;color:#a31526;font-size:.76rem;font-weight:600;border-radius:12px;padding:6px 12px}
 #err:empty{display:none}
 .pill2{max-width:600px;margin:0 auto;background:#fff;color:var(--ink);border-radius:99px;padding:6px 6px 6px 18px;display:flex;align-items:center;gap:10px;box-shadow:0 14px 34px -10px rgba(0,0,0,.6)}
@@ -138,6 +154,18 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .bdg.proses{color:#60a5fa;background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.5)}
 .bdg.selesai{color:var(--ok);background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.5)}
 .bdg.new{background:var(--y);color:var(--ink);border-color:var(--y);font-size:.62rem;margin-left:6px;padding:1px 8px}
+.bdg.belum{color:#fbbf24;background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.5)}
+.bdg.sedang{color:#60a5fa;background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.5)}
+.btn.big{min-height:44px;min-width:44px;padding:8px 18px}
+.adm select{min-height:44px}
+.adm tr.rw{cursor:pointer}
+.mdl{position:fixed;inset:0;z-index:1100;background:rgba(11,30,60,.94);overflow-y:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px))}
+.mdl>.card{max-width:600px;margin:0 auto}
+.mdl h2{font-size:1.05rem;margin:0 0 8px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.84rem}
+.kv span{color:var(--mut)}.kv b{text-align:right;word-break:break-word;font-weight:600}
+.files .btn{text-decoration:none;display:inline-flex;align-items:center;margin:0}
+#netlify-badge,.netlify-badge,a[href*="netlify.com"][target="_blank"],iframe[src*="netlify"]{display:none!important;visibility:hidden!important;pointer-events:none!important}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -187,11 +215,14 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
       <div class="card" style="text-align:center"><h2>Pesanan tercatat ✅</h2>
         <div>Nomor pesanan</div><div class="id" id="oid"></div>
         <p>Total: <b id="otot" style="color:var(--y)"></b></p>
-        <p>Status: <span class="bdg pending" id="ost">Pending (Belum Bayar)</span></p>
+        <p>Status pengerjaan: <span class="bdg belum" id="ost">Belum dikerjakan</span></p>
+        <p>Pembayaran: <span class="bdg belum" id="opay">Pending (Belum Bayar)</span></p>
         <p class="sub" id="osum"></p><div id="donepay" style="text-align:left"></div>
+        <p><button type="button" class="btn y big" id="paidBtn" hidden>Saya sudah bayar</button> <button type="button" class="btn g big" id="refBtn">Refresh Status</button></p>
+        <p class="sub" id="refm"></p>
         <p class="sub">Admin menghubungi lewat WhatsApp untuk konfirmasi harga dan jadwal.</p>
         <p><a class="btn c" id="waBtn" href="#" target="_blank" rel="noopener" hidden style="display:inline-block;text-decoration:none">Konfirmasi via WhatsApp</a></p>
-        <p><button type="button" class="btn y" id="home">Kembali ke beranda</button></p>
+        <p><button type="button" class="btn y big" id="home">Kembali ke beranda</button> <button type="button" class="btn g big" id="bkAdm" hidden>← Kembali ke Admin</button></p>
       </div>
       <div class="card res" id="aiRes" hidden></div>
     </section>
@@ -202,13 +233,17 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 
 <div class="bar" id="bar"><p id="err" role="alert"></p><div class="pill2"><button class="bk" id="back" aria-label="Kembali" hidden>‹</button><div class="tot"><small>Perkiraan</small><b id="tv">Rp0</b></div><button class="nx" id="next">Lanjut</button></div></div>
 
+<div class="mdl" id="mdl" hidden role="dialog" aria-modal="true" aria-label="Detail pesanan"></div>
+
 <div class="ld" id="ld" hidden role="status" aria-live="polite"><div class="ldb"><div class="rs" id="rs" aria-hidden="true"></div><div class="pb" aria-hidden="true"><div></div></div><p id="ldt"></p></div></div>
 
 <script>
 // ===== PENGATURAN =====
-var ENDPOINT = "https://script.google.com/macros/s/AKfycbzlPmMEnViYbOhcYXKa9DC4-E1YsDcNN85AdZ50xblIOgxQ-NMPiqiaGzAXArgBs5s5/exec";   // tempel URL Web App Google Apps Script (berakhiran /exec). Kosong = pesanan hanya disimpan di HP.
+var ENDPOINT = "https://script.google.com/macros/s/AKfycbw9HlAp8BAKZ2bODea8qVWSVEgFjo9bGCJG6VElDxl9P9xf4VsQDTvmLrjnUWMZReRFQg/exec";   // tempel URL Web App Google Apps Script (berakhiran /exec). Kosong = pesanan hanya disimpan di HP.
 var AI_URL = "";     // opsional: URL backend Cek AI (Node.js). Kosongkan bila tidak dipakai.
 var ADMIN_WA = "6285143401514";           // nomor WhatsApp admin (format 628xxx)
+var CALLMEBOT_KEY = "";  // opsional: isi manual setelah setup CallMeBot. Kosong = notif WA otomatis dilewati (tombol wa.me tetap ada)
+var AUTO_POLL = false;   // true = pane #p4 cek status ke server tiap 20 dtk (boros kuota Apps Script). Disarankan false.
 var OWNER = "Alex Zainal Abidin";
 var PAY = {"DANA":{l:"Nomor DANA",n:"0851 4340 1514",r:"085143401514"},"Bank BRI":{l:"Rekening Bank BRI",n:"0172 0110 6606 503",r:"017201106606503"}};
 // ======================
@@ -331,15 +366,15 @@ function add(k,fl,multi,acc){
     b.appendChild(l);
   });
 })();
-function payInfo(box){
-  box.innerHTML=""; if(!S.pay)return;
+function payInfo(box,amt,mth){
+  box.innerHTML=""; var M=mth||S.pay; if(!M)return;
   var d=document.createElement("div"); d.className="paybox";
   function p(c,t){var e=document.createElement("p");e.className=c;e.textContent=t;d.appendChild(e)}
-  var t=calc().t;
-  if(S.pay==="Bayar Nanti"){p("an","Bayar setelah konfirmasi");p("lb","Admin mengirim total biaya dan rincian pembayaran lewat WhatsApp.");}
+  var t=amt==null?calc().t:amt;
+  if(M==="Bayar Nanti"){p("an","Bayar setelah konfirmasi");p("lb","Admin mengirim total biaya dan rincian pembayaran lewat WhatsApp.");}
   else{
-    var a=PAY[S.pay]; p("lb",a.l);p("no",a.n);p("lb","Atas nama");p("an",OWNER);
-    var b=document.createElement("button"); b.type="button"; b.className="btn c"; b.textContent="Salin nomor";
+    var a=PAY[M]; if(!a)return; p("lb",a.l);p("no",a.n);p("lb","Atas nama");p("an",OWNER);
+    var b=document.createElement("button"); b.type="button"; b.className="btn c big"; b.textContent="Salin nomor";
     b.onclick=function(){
       var ok=function(){b.textContent="Tersalin ✓"};
       if(navigator.clipboard)navigator.clipboard.writeText(a.r).then(ok,function(){});
@@ -405,7 +440,7 @@ function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function b64(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res({name:f.name,type:f.type||"application/octet-stream",data:String(r.result).split(",")[1]})};r.onerror=function(){rej(new Error("Gagal membaca "+f.name))};r.readAsDataURL(f)})}
 async function kirimOrder(c){
   var enc=await Promise.all(S.files.naskah.map(b64));
-  var p={nama:v("nama"),email:v("email"),wa:v("wa"),layanan:c.L.map(function(x){return x[0]}).join(", "),halaman:needPg()?String(S.pages):"",slide:S.sel.ppt?String(S.slides):"",ekspres:S.exp,estimasi:c.t,metode_bayar:S.pay,files:enc};
+  var p={nama:v("nama"),email:v("email"),wa:v("wa"),layanan:c.L.map(function(x){return x[0]}).join(", "),halaman:needPg()?String(S.pages):"",slide:S.sel.ppt?String(S.slides):"",ekspres:S.exp,estimasi:c.t,metode_bayar:S.pay,payStatus:"pending",files:enc};
   var ac=new AbortController(),t=setTimeout(function(){ac.abort()},120000);
   try{
     var r=await fetch(ENDPOINT,{method:"POST",body:JSON.stringify(p),signal:ac.signal}), j=await r.json();
@@ -417,7 +452,7 @@ async function kirimOrder(c){
 // ---------- kirim ----------
 async function submit(){
   var btn=$("next"); btn.disabled=true; err(""); showLd(S.sel.ai?"AI sedang memeriksa dokumen…":"Memproses pesanan…");
-  var c=calc(), id="DE-"+Date.now().toString(36).toUpperCase(), ai=null;
+  var c=calc(), id="DE-"+Date.now().toString(36).toUpperCase(), ai=null, srv=null;
   if(S.sel.ai){
     
     try{
@@ -429,14 +464,14 @@ async function submit(){
   }
   await wait(S.sel.ai||ENDPOINT?300:1500);
   if(ENDPOINT){
-    try{var j=await kirimOrder(c); id=j.id||id; if(j.adminWa)ADMIN_WA=j.adminWa}
+    try{var j=await kirimOrder(c); srv=j; id=j.id||id; if(j.adminWa)ADMIN_WA=j.adminWa}
     catch(e){hideLd();btn.disabled=false;err("Gagal mengirim: "+e.message+". Coba lagi atau hubungi admin lewat WhatsApp.");return}
   }
-  var o={id:id,at:new Date().toISOString(),nama:v("nama"),email:v("email"),wa:v("wa"),svc:c.L.map(function(x){return x[0]}),total:c.t,exp:S.exp,pay:S.pay,status:"Baru",pg:needPg()?S.pages:"",sl:S.sel.ppt?S.slides:"",ai:ai&&ai.score!=null?ai.score:null};
+  var o={id:id,at:new Date().toISOString(),nama:v("nama"),email:v("email"),wa:v("wa"),svc:c.L.map(function(x){return x[0]}),total:c.t,exp:S.exp,pay:S.pay,status:"Belum dikerjakan",payStatus:"pending",filesMeta:S.files.naskah.map(function(f){return{name:f.name,size:f.size,type:f.type||""}}),fileLinks:(srv&&srv.fileLinks)||[],pg:needPg()?S.pages:"",sl:S.sel.ppt?S.slides:"",ai:ai&&ai.score!=null?ai.score:null};
   try{var all=JSON.parse(localStorage.getItem("damnedit_orders")||"[]"); all.unshift(o); localStorage.setItem("damnedit_orders",JSON.stringify(all));}catch(e){}
-  $("oid").textContent=id; setBadge($("ost"),"Baru"); $("osum").textContent=o.svc.join(", ")+(S.exp?" · ekspres":"")+" · "+S.pay; $("otot").textContent=rp(c.t); payInfo($("donepay"));
+  fillDone(o); $("bkAdm").hidden=true; notifyWA("DAMNEDIT pesanan baru "+id+": "+o.nama+" | "+o.svc.join(", ")+" | "+rp(c.t)+" | "+S.pay);
   var msg="Halo Admin DAMNEDIT, saya "+o.nama+" mengirim pesanan "+id+". Layanan: "+o.svc.join(", ")+". Total: "+rp(c.t)+". Pembayaran: "+S.pay+".";
-  if(ADMIN_WA.indexOf("X")<0){$("waBtn").href="https://wa.me/"+ADMIN_WA.replace(/\D/g,"")+"?text="+encodeURIComponent(msg);$("waBtn").hidden=false}
+  if(ADMIN_WA.indexOf("X")<0){$("waBtn").href="https://wa.me/"+ADMIN_WA.replace(/\D/g,"")+"?text="+encodeURIComponent(msg);$("waBtn").textContent="Konfirmasi via WhatsApp";$("waBtn").hidden=false}
   renderAI(ai); hideLd(); show(4); $("tabs").hidden=true;
   btn.disabled=false;
 }
@@ -456,7 +491,7 @@ function renderAI(a){
 }
 
 // ---------- dashboard admin ----------
-function local(){try{return JSON.parse(localStorage.getItem("damnedit_orders")||"[]")}catch(e){return[]}}
+function local(){try{var a=JSON.parse(localStorage.getItem("damnedit_orders")||"[]");return Array.isArray(a)?a.map(fixOrder):[]}catch(e){return[]}}
 function adminView(){
   $("client").hidden=true; $("bar").hidden=true; $("admin").hidden=false; $("prog").textContent="Admin";
   var a=$("admin"), k=sess(); a.innerHTML=""; if(!k){logout();return}
@@ -464,30 +499,85 @@ function adminView(){
   a.textContent="Memuat pesanan…";
   adminLogin(k.k).then(function(o){adminRender(o,true)}).catch(function(e){a.textContent=e.message; a.appendChild(outBtn())});
 }
+function mk(t,c,x){var e=document.createElement(t); if(c)e.className=c; if(x!=null)e.textContent=x; return e}
+function kv(p,k,val){var r=mk("div","kv"); r.appendChild(mk("span",null,k)); var b=mk("b"); if(val&&val.nodeType)b.appendChild(val); else b.textContent=val; r.appendChild(b); p.appendChild(r)}
+function fsize(n){n=+n||0; return n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB"}
+function saveLocal(id,patch){
+  try{var l=local(),ch=false; l.forEach(function(x){if(String(x.id).toUpperCase()===String(id).toUpperCase()){Object.keys(patch).forEach(function(k){x[k]=patch[k]});ch=true}}); if(ch)localStorage.setItem("damnedit_orders",JSON.stringify(l))}catch(e){}
+  window.dispatchEvent(new CustomEvent("order-updated",{detail:{id:id}}));
+}
+function adminUpdate(o,patch,all,remote){
+  Object.keys(patch).forEach(function(k){o[k]=patch[k]});
+  saveLocal(o.id,patch);
+  var req=ENDPOINT?fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"update",key:(sess()||{}).k,id:o.id,status:patch.status,payStatus:patch.payStatus})}).then(function(r){return r.json()}).then(function(j){if(!j.ok)throw new Error(j.error||"Gagal menyimpan ke server.")}):Promise.resolve();
+  return req.then(function(){return ""},function(e){return e.message==="Failed to fetch"?"Koneksi gagal; perubahan hanya tersimpan di perangkat ini.":e.message}).then(function(msg){adminRender(all,remote); if(msg)$("admnote").textContent=msg});
+}
+function viewAsClient(o){
+  fillDone(o); $("paidBtn").hidden=true; $("refm").textContent="";
+  $("mdl").hidden=true; $("admin").hidden=true; $("client").hidden=false;
+  show(4); $("tabs").hidden=true; $("bar").hidden=true; $("aiRes").hidden=true; $("waBtn").hidden=true; $("bkAdm").hidden=false;
+}
+function openDetail(o,all,remote){
+  var m=$("mdl"); m.innerHTML=""; var c=mk("div","card"); m.appendChild(c);
+  m.onclick=function(e){if(e.target===m)m.hidden=true};
+  c.appendChild(mk("h2",null,"Detail pesanan "+o.id));
+  var w=waNum(o.wa), wl=null;
+  if(w){wl=mk("a",null,o.wa); wl.href="https://wa.me/"+w; wl.target="_blank"; wl.rel="noopener"; wl.style.color="var(--y)"}
+  var dt=new Date(o.at);
+  kv(c,"Nama",o.nama||"-"); kv(c,"Email",o.email||"-"); kv(c,"WhatsApp",wl||o.wa||"-");
+  kv(c,"Layanan",o.svc.join(", ")+(o.exp?" (ekspres)":""));
+  kv(c,"Halaman / slide",[o.pg?o.pg+" hal":"",o.sl?o.sl+" slide":""].filter(Boolean).join(" · ")||"-");
+  kv(c,"Total",rp(+o.total||0)); kv(c,"Metode bayar",o.pay||"-");
+  var pb=mk("span","bdg"); setPay(pb,o.payStatus); kv(c,"Pembayaran",pb);
+  var sb=mk("span","bdg"); setBadge(sb,o.status); kv(c,"Status",sb);
+  kv(c,"Tanggal",o.at?(isNaN(dt)?String(o.at):dt.toLocaleString("id-ID")):"-");
+  c.appendChild(mk("div","zt","File klien")); c.lastChild.style.marginTop="14px";
+  var ul=mk("ul","files"), fl=o.fileLinks.length?o.fileLinks:o.filesMeta;
+  if(!fl.length)ul.appendChild(mk("li",null,"Tidak ada file."));
+  fl.forEach(function(f){
+    var li=mk("li"); li.appendChild(mk("span",null,f.name+" ("+fsize(f.size)+")"));
+    if(f.url&&/^https:\/\/(drive|docs)\.google\.com\//.test(f.url)){var a=mk("a","btn c big","Buka"); a.href=f.url; a.target="_blank"; a.rel="noopener"; li.appendChild(a)}
+    else li.appendChild(mk("small",null,"tanpa tautan"));
+    ul.appendChild(li);
+  });
+  c.appendChild(ul);
+  var r=mk("div"); r.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"; c.appendChild(r);
+  if(o.payStatus!=="success"){var cb=mk("button","btn y big","✓ Konfirmasi Pembayaran"); cb.type="button"; cb.onclick=function(){cb.disabled=true; adminUpdate(o,{payStatus:"success"},all,remote).then(function(){openDetail(o,all,remote)})}; r.appendChild(cb)}
+  var vb=mk("button","btn c big","Lihat sebagai Klien"); vb.type="button"; vb.onclick=function(){viewAsClient(o)}; r.appendChild(vb);
+  var xb=mk("button","btn g big","Tutup"); xb.type="button"; xb.onclick=function(){m.hidden=true}; r.appendChild(xb);
+  m.hidden=false; m.scrollTop=0;
+}
 function adminRender(all,remote){
+  all.forEach(fixOrder);
   var a=$("admin"); a.innerHTML=""; a.appendChild(outBtn());
   var rev=all.filter(function(o){return o.status==="Selesai"}).reduce(function(s,o){return s+(+o.total||0)},0);
-  var st=document.createElement("div"); st.className="stats";
-  [["Pesanan",all.length],["Baru",all.filter(function(o){return o.status==="Baru"}).length],["Selesai",rp(rev)]].forEach(function(x){
-    var d=document.createElement("div"),s=document.createElement("small"),b=document.createElement("b"); s.textContent=x[0]; b.textContent=x[1]; d.appendChild(s); d.appendChild(b); st.appendChild(d);
-  });
+  var st=mk("div","stats");
+  [["Pesanan",all.length],["Belum",all.filter(function(o){return o.status==="Belum dikerjakan"}).length],["Selesai",rp(rev)]].forEach(function(x){var d=mk("div"); d.appendChild(mk("small",null,x[0])); d.appendChild(mk("b",null,x[1])); st.appendChild(d)});
   a.appendChild(st);
-  var card=document.createElement("div"); card.className="card scroll";
+  var card=mk("div","card scroll");
   if(!all.length){card.textContent="Belum ada pesanan."}
   else{
-    var tb=document.createElement("table"); tb.innerHTML="<tr><th>ID / Nama</th><th>Layanan</th><th>Total</th><th>Status</th><th>WhatsApp</th></tr>";
-    all.forEach(function(o,i){
-      var tr=tb.insertRow(), c1=tr.insertCell(), c2=tr.insertCell(), c3=tr.insertCell(), c4=tr.insertCell(), c5=tr.insertCell();
-      c1.textContent=o.id+" · "+o.nama; waCell(c5,o);
-      if(o.status==="Baru"){c1.style.color="var(--y)";c1.style.fontWeight="700";var nb=document.createElement("span");nb.className="bdg new";nb.textContent="BARU";c1.appendChild(nb)} c2.textContent=o.svc.join(", ")+(o.exp?" (ekspres)":""); c3.textContent=rp(+o.total||0);
-      if(remote){c4.textContent=o.status;return}
-      var sel=document.createElement("select"); ["Baru","Proses","Selesai"].forEach(function(s){var op=document.createElement("option"); op.textContent=s; if(s===o.status)op.selected=true; sel.appendChild(op)});
-      sel.onchange=function(){all[i].status=sel.value; localStorage.setItem("damnedit_orders",JSON.stringify(all)); adminRender(all,false)}; c4.appendChild(sel);
+    var tb=document.createElement("table"); tb.innerHTML="<tr><th>ID / Nama</th><th>Layanan</th><th>Total</th><th>Status</th><th>Pembayaran</th><th>WhatsApp</th></tr>";
+    all.forEach(function(o){
+      var tr=tb.insertRow(), c1=tr.insertCell(), c2=tr.insertCell(), c3=tr.insertCell(), c4=tr.insertCell(), c5=tr.insertCell(), c6=tr.insertCell();
+      tr.className="rw"; tr.onclick=function(e){if(e.target.closest&&e.target.closest("select,a,button"))return; openDetail(o,all,remote)};
+      c1.textContent=o.id+" · "+o.nama; waCell(c6,o);
+      if(o.status==="Belum dikerjakan"){c1.style.color="var(--y)";c1.style.fontWeight="700";c1.appendChild(mk("span","bdg new","BARU"))}
+      c1.appendChild(document.createElement("br"));
+      var db=mk("button","btn g big","Detail & file"); db.type="button"; db.style.marginTop="6px"; db.onclick=function(){openDetail(o,all,remote)}; c1.appendChild(db);
+      c2.textContent=o.svc.join(", ")+(o.exp?" (ekspres)":""); c3.textContent=rp(+o.total||0);
+      var sel=document.createElement("select"); sel.setAttribute("aria-label","Status "+o.id);
+      Object.keys(ST).forEach(function(s){var op=document.createElement("option"); op.textContent=s; if(s===o.status)op.selected=true; sel.appendChild(op)});
+      sel.onchange=function(){adminUpdate(o,{status:sel.value},all,remote)}; c4.appendChild(sel);
+      var pbd=mk("span","bdg"); setPay(pbd,o.payStatus); c5.appendChild(pbd);
+      if(o.payStatus!=="success"){c5.appendChild(document.createElement("br")); var cb=mk("button","btn y big","✓ Konfirmasi"); cb.type="button"; cb.style.marginTop="6px"; cb.onclick=function(){adminUpdate(o,{payStatus:"success"},all,remote)}; c5.appendChild(cb)}
     });
     card.appendChild(tb);
   }
   a.appendChild(card);
-  var p=document.createElement("p"); p.className="sub"; p.textContent=remote?"Ubah status langsung di Google Sheets. File klien ada di kolom Folder file.":"Data tersimpan di perangkat ini."; a.appendChild(p);
+  var p=mk("p","sub",remote?"Status & pembayaran tersimpan ke Google Sheets. Ketuk baris untuk melihat file klien.":"Data tersimpan di perangkat ini. Ketuk baris untuk detail.");
+  a.appendChild(p);
+  var n=mk("p","sub"); n.id="admnote"; n.style.color="var(--err)"; a.appendChild(n);
 }
 
 // ---------- PWA ----------
@@ -501,11 +591,28 @@ function adminRender(all,remote){
 })();
 
 var SESS="damnedit_admin_session", LOCAL_KEY="ganti-sandi-ini"; // LOCAL_KEY hanya dipakai bila ENDPOINT kosong
-var ST={Baru:["pending","Pending (Belum Bayar)"],Proses:["proses","Proses (Dikerjakan Admin)"],Selesai:["selesai","Selesai"]};
+var ST={"Belum dikerjakan":["belum","Belum dikerjakan"],"Sedang dikerjakan":["sedang","Sedang dikerjakan"],"Selesai":["selesai","Selesai"]};
+var MIG={"Baru":"Belum dikerjakan","Proses":"Sedang dikerjakan"};
+var PAYST={pending:["belum","Pending (Belum Bayar)"],pending_confirm:["sedang","Menunggu Konfirmasi Admin"],success:["selesai","Sukses ✓"]};
+function norm(s){return MIG[s]||(ST[s]?s:"Belum dikerjakan")}
+function fixOrder(o){
+  if(!o||typeof o!=="object")return o;
+  o.status=norm(o.status); o.payStatus=PAYST[o.payStatus]?o.payStatus:"pending";
+  if(typeof o.svc==="string")o.svc=[o.svc]; else if(!Array.isArray(o.svc))o.svc=[];
+  if(!Array.isArray(o.fileLinks))o.fileLinks=[]; if(!Array.isArray(o.filesMeta))o.filesMeta=[];
+  return o;
+}
+function migrate(){try{var a=JSON.parse(localStorage.getItem("damnedit_orders")||"[]"); if(Array.isArray(a)){a.forEach(fixOrder); localStorage.setItem("damnedit_orders",JSON.stringify(a))}}catch(e){}}
 function pptTxt(){var a=S.pptEl.slice(),o=$("pptx")?v("pptx"):""; if(o)a.push(o); return a.length?" · unsur: "+a.join(", "):""}
 function sess(){try{var x=JSON.parse(localStorage.getItem(SESS)||"null");return x&&x.ok?x:null}catch(e){return null}}
-function logout(){try{localStorage.removeItem(SESS)}catch(e){} location.reload()}
-function outBtn(){var b=document.createElement("button");b.type="button";b.className="btn g lnk";b.textContent="Keluar Mode Admin";b.onclick=logout;return b}
+function toClient(){$("admin").hidden=true;$("mdl").hidden=true;$("client").hidden=false;$("admLogin").hidden=true;show(S.step);upd()} // sesi tetap
+function logout(){try{localStorage.removeItem(SESS)}catch(e){} toClient()} // Logout Total
+function outBtn(){
+  var w=mk("div"); w.style.cssText="display:flex;gap:8px;flex-wrap:wrap";
+  var b1=mk("button","btn g big lnk","← Kembali ke Mode Klien"); b1.type="button"; b1.onclick=toClient;
+  var b2=mk("button","btn y big lnk","Logout Total"); b2.type="button"; b2.onclick=logout;
+  w.appendChild(b1); w.appendChild(b2); return w;
+}
 function adminLogin(k){
   if(!ENDPOINT)return k===LOCAL_KEY?Promise.resolve([]):Promise.reject(new Error("Kunci salah."));
   return fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"list",key:k})}).then(function(r){return r.json()}).then(function(j){if(!j.ok)throw new Error(j.error||"Kunci salah.");return j.orders});
@@ -514,26 +621,87 @@ function waNum(r){var d=String(r||"").replace(/\D/g,""); if(d.indexOf("0")===0)d
 function waCell(c,o){
   var n=waNum(o.wa); if(!n){c.textContent=o.wa||"-";return}
   var l=document.createElement("a"); l.href="https://wa.me/"+n; l.target="_blank"; l.rel="noopener"; l.textContent=o.wa; l.style.color="var(--y)"; c.appendChild(l); c.appendChild(document.createElement("br"));
-  var b=document.createElement("a"); b.className="btn c lnk"; b.style.cssText="min-height:34px;padding:5px 14px;font-size:.78rem;margin-top:6px"; b.target="_blank"; b.rel="noopener"; b.textContent="Chat WA";
+  var b=document.createElement("a"); b.className="btn c lnk"; b.style.cssText="min-height:44px;min-width:44px;padding:10px 14px;font-size:.78rem;margin-top:6px"; b.target="_blank"; b.rel="noopener"; b.textContent="Chat WA";
   b.href="https://wa.me/"+n+"?text="+encodeURIComponent("Halo "+o.nama+", kami dari DAMNEDIT ingin mengonfirmasi pesanan Anda dengan ID "+o.id+"."); c.appendChild(b);
 }
-function getStatus(id){id=String(id).trim().toUpperCase();var a=local();for(var i=0;i<a.length;i++)if(String(a[i].id).toUpperCase()===id)return a[i].status||"Baru";return null}
-function setBadge(el,st){var x=ST[st]||ST.Baru; el.className="bdg "+x[0]; el.textContent=x[1]}
-function doCek(){
-  var r=$("cekr"), id=v("cekid"), st=id?getStatus(id):null; r.textContent="";
-  if(!id){r.textContent="Masukkan nomor pesanan.";return}
-  if(!st){r.textContent="Pesanan tidak ditemukan di perangkat ini.";return}
-  r.appendChild(document.createTextNode("Status "+id.toUpperCase()+": ")); var b=document.createElement("span"); setBadge(b,st); r.appendChild(b);
+function findLocal(id){id=String(id).trim().toUpperCase();var a=local();for(var i=0;i<a.length;i++)if(String(a[i].id).toUpperCase()===id)return a[i];return null}
+function getStatus(id){var o=findLocal(id);return o?o.status:null}
+function setBadge(el,st){var x=ST[norm(st)]; el.className="bdg "+x[0]; el.textContent=x[1]}
+function setPay(el,p){var x=PAYST[p]||PAYST.pending; el.className="bdg "+x[0]; el.textContent=x[1]}
+// Notif WA otomatis via CallMeBot. Fail-silent; tanpa kunci = dilewati.
+function notifyWA(t){
+  if(!CALLMEBOT_KEY)return;
+  try{fetch("https://api.callmebot.com/whatsapp.php?phone="+ADMIN_WA.replace(/\D/g,"")+"&text="+encodeURIComponent(t)+"&apikey="+encodeURIComponent(CALLMEBOT_KEY),{mode:"no-cors",keepalive:true}).catch(function(){console.warn("Notif WA tidak terkirim")})}
+  catch(e){console.warn("Notif WA tidak terkirim")}
 }
-$("cekb").onclick=doCek;
-window.addEventListener("storage",function(e){
-  if(e.key!=="damnedit_orders")return;
-  var id=$("oid").textContent, st=id&&getStatus(id); if(st)setBadge($("ost"),st);
-  if($("cekr").textContent)doCek();
+function pullStatus(id){ // ambil status terbaru dari server (lintas perangkat)
+  if(!ENDPOINT)return Promise.resolve(null);
+  id=String(id).trim();
+  return fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"status",id:id})}).then(function(r){return r.json()}).then(function(j){
+    if(!j||!j.ok)return null;
+    j.status=norm(j.status); j.payStatus=PAYST[j.payStatus]?j.payStatus:"pending";
+    var o=findLocal(id); if(o&&(o.status!==j.status||o.payStatus!==j.payStatus))saveLocal(id,{status:j.status,payStatus:j.payStatus});
+    return j;
+  }).catch(function(){return null});
+}
+function fillDone(o){
+  $("oid").textContent=o.id; setBadge($("ost"),o.status); setPay($("opay"),o.payStatus);
+  $("otot").textContent=rp(+o.total||0); $("osum").textContent=o.svc.join(", ")+(o.exp?" · ekspres":"")+" · "+(o.pay||"-");
+  var d=$("donepay"); d.innerHTML="";
+  if(o.payStatus==="success"){var p=document.createElement("p"); p.className="sub"; p.textContent="Pembayaran sudah dikonfirmasi admin. Terima kasih! ✓"; d.appendChild(p)}
+  else payInfo(d,+o.total||0,o.pay);
+  $("paidBtn").hidden=!(PAY[o.pay]&&o.payStatus==="pending");
+}
+function syncDone(id,j){var o=findLocal(id); if(o)fillDone(o); else if(j){setBadge($("ost"),j.status);setPay($("opay"),j.payStatus)}}
+async function doCek(localOnly){
+  var r=$("cekr"), id=v("cekid"); r.textContent="";
+  if(!id){r.textContent="Masukkan nomor pesanan.";return}
+  var o=findLocal(id), rs=o?{status:o.status,payStatus:o.payStatus}:null;
+  if(!localOnly&&ENDPOINT){r.textContent="Memeriksa…"; var j=await pullStatus(id); if(j)rs={status:j.status,payStatus:j.payStatus}}
+  r.textContent="";
+  if(!rs){r.textContent="Pesanan tidak ditemukan.";return}
+  r.appendChild(document.createTextNode("Status "+id.toUpperCase()+": "));
+  var b=document.createElement("span"); setBadge(b,rs.status); r.appendChild(b);
+  r.appendChild(document.createTextNode(" · Pembayaran: "));
+  var q=document.createElement("span"); setPay(q,rs.payStatus); r.appendChild(q);
+}
+$("cekb").onclick=function(){doCek()};
+function refreshView(id){
+  var same=function(a){return !id||String(a).trim().toUpperCase()===String(id).trim().toUpperCase()}, cur=$("oid").textContent;
+  if(cur&&same(cur))syncDone(cur);
+  if($("cekr").textContent&&same(v("cekid")))doCek(true);
+}
+window.addEventListener("storage",function(e){if(e.key==="damnedit_orders")refreshView()});
+window.addEventListener("order-updated",function(e){refreshView(e.detail&&e.detail.id)});
+$("refBtn").onclick=function(){
+  var id=$("oid").textContent, m=$("refm"); if(!id)return;
+  if(!ENDPOINT){m.textContent="Mode lokal: status mengikuti perangkat ini.";syncDone(id);return}
+  m.textContent="Memperbarui…";
+  pullStatus(id).then(function(j){if(j){syncDone(id,j);m.textContent="Diperbarui "+new Date().toLocaleTimeString("id-ID")}else m.textContent="Belum bisa terhubung ke server. Coba lagi."});
+};
+$("paidBtn").onclick=function(){
+  var id=$("oid").textContent; if(!id)return;
+  var o=findLocal(id), msg="Halo Admin DAMNEDIT, saya sudah membayar pesanan "+id+" ("+rp(o?+o.total||0:0)+") via "+(o?o.pay:"-")+". Mohon dicek.";
+  saveLocal(id,{payStatus:"pending_confirm"}); // juga memicu refreshView -> badge & tombol diperbarui
+  if(ENDPOINT)fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"paid",id:id})}).catch(function(){console.warn("Gagal mengirim kabar bayar")});
+  notifyWA("DAMNEDIT: klien menyatakan SUDAH BAYAR, pesanan "+id+". Mohon cek mutasi lalu konfirmasi.");
+  if(ADMIN_WA.indexOf("X")<0){var w=$("waBtn"); w.href="https://wa.me/"+ADMIN_WA.replace(/\D/g,"")+"?text="+encodeURIComponent(msg); w.textContent="Kirim kabar bayar via WhatsApp"; w.hidden=false}
+  $("refm").textContent="Terkirim. Menunggu konfirmasi admin.";
+};
+$("bkAdm").onclick=function(){home();adminView()};
+if(AUTO_POLL)setInterval(function(){ // hanya saat pane #p4 terlihat
+  if(document.hidden||!$("p4").classList.contains("on"))return;
+  var id=$("oid").textContent; if(id)pullStatus(id).then(function(j){if(j)syncDone(id,j)});
+},20000);
+document.addEventListener("DOMContentLoaded",function(){ // sembunyikan badge Netlify (maks 10x, tanpa MutationObserver)
+  var n=0,t=setInterval(function(){
+    [].forEach.call(document.querySelectorAll('[id*="netlify" i],[class*="netlify" i]'),function(e){e.remove()});
+    if(++n>=10)clearInterval(t);
+  },1500);
 });
 (function(){ // 5x ketuk logo (jeda maks 1,5 dtk) membuka form login admin
   var n=0,t=0;
-  $("logoTap").addEventListener("click",function(){var now=Date.now(); n=now-t<=1500?n+1:1; t=now; if(n>=5){n=0;$("admLogin").hidden=false;$("admm").textContent="";$("admk").focus()}});
+  $("logoTap").addEventListener("click",function(){var now=Date.now(); n=now-t<=1500?n+1:1; t=now; if(n>=5){n=0;if(sess()){adminView();return}$("admLogin").hidden=false;$("admm").textContent="";$("admk").focus()}});
   $("admX").onclick=function(){$("admLogin").hidden=true;$("admk").value=""};
   $("admLogin").onsubmit=function(e){
     e.preventDefault(); var k=$("admk").value; if(!k){$("admm").textContent="Isi kunci admin.";return}
@@ -545,11 +713,11 @@ window.addEventListener("storage",function(e){
 function home(){
   S.sel={};S.pptEl=[];S.pages=50;S.slides=15;S.exp=false;S.pay="";S.files={naskah:[],ai1:[],ai2:[]};
   [].forEach.call(document.querySelectorAll("#client input"),function(e){if(e.type==="checkbox"||e.type==="radio")e.checked=false;else if(e.type!=="file")e.value=e.id==="pg"?50:e.id==="sl"?15:""});
-  $("tabs").hidden=false;$("aiRes").hidden=true;$("waBtn").hidden=true;$("payinfo").innerHTML="";
+  $("tabs").hidden=false;$("aiRes").hidden=true;$("waBtn").hidden=true;$("payinfo").innerHTML="";$("donepay").innerHTML="";$("bkAdm").hidden=true;$("refm").textContent="";
   show(0);upd();
 }
 $("home").onclick=home;
-if(sess())adminView(); else{show(0);upd();}
+show(0);upd();migrate(); // selalu mulai di tampilan klien
 </script>
 </body>
 </html>
