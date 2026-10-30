@@ -181,7 +181,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
         <label class="f" for="email">Email aktif</label><input id="email" type="email" autocomplete="email" placeholder="nama@gmail.com">
         <label class="f" for="wa">Nomor WhatsApp</label><input id="wa" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx">
       </div>
-      <details class="card" id="cek"><summary style="cursor:pointer;color:var(--y);font-weight:600">Cek status pesanan</summary><div style="display:flex;gap:8px;margin-top:10px"><input id="cekid" type="text" placeholder="Nomor pesanan, mis. DE-XXXX" autocapitalize="characters" autocomplete="off"><button type="button" class="btn y" id="cekb">Cek</button></div><p class="sub" id="cekr" style="margin:10px 0 0"></p></details>
+      <details class="card" id="cek"><summary style="cursor:pointer;color:var(--y);font-weight:600">Cek status pesanan</summary><div style="display:flex;gap:8px;margin-top:10px"><input id="cekid" type="text" placeholder="Nomor pesanan, mis. DE-XXXX" autocapitalize="characters" autocomplete="off"><button type="button" class="btn y" id="cekb">Cek</button></div><input id="cek4" type="text" inputmode="numeric" maxlength="4" placeholder="4 digit terakhir WhatsApp" autocomplete="off" style="margin-top:8px"><p class="sub" id="cekr" style="margin:10px 0 0"></p></details>
     </section>
 
     <section class="pane" id="p1">
@@ -625,10 +625,11 @@ function notifyWA(t){
   try{fetch("https://api.callmebot.com/whatsapp.php?phone="+ADMIN_WA.replace(/\D/g,"")+"&text="+encodeURIComponent(t)+"&apikey="+encodeURIComponent(CALLMEBOT_KEY),{mode:"no-cors",keepalive:true}).catch(function(){console.warn("Notif WA tidak terkirim")})}
   catch(e){console.warn("Notif WA tidak terkirim")}
 }
-function pullStatus(id){ // ambil status terbaru dari server (lintas perangkat)
-  if(!ENDPOINT)return Promise.resolve(null);
-  id=String(id).trim();
-  return fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"status",id:id})}).then(function(r){return r.json()}).then(function(j){
+function pullStatus(id,last4){ // ambil status terbaru dari server (lintas perangkat)
+    if(!ENDPOINT)return Promise.resolve(null);
+    id=String(id).trim();
+    if(!last4){var lo=findLocal(id); last4=lo&&lo.wa?String(lo.wa).replace(/\D/g,"").slice(-4):""}
+    return fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"status",id:id,last4:last4||""})}).then(function(r){return r.json()}).then(function(j){
     if(!j||!j.ok)return null;
     j.status=norm(j.status); j.payStatus=PAYST[j.payStatus]?j.payStatus:"pending";
     var o=findLocal(id); if(o&&(o.status!==j.status||o.payStatus!==j.payStatus))saveLocal(id,{status:j.status,payStatus:j.payStatus});
@@ -648,7 +649,7 @@ async function doCek(localOnly){
   var r=$("cekr"), id=v("cekid"); r.textContent="";
   if(!id){r.textContent="Masukkan nomor pesanan.";return}
   var o=findLocal(id), rs=o?{status:o.status,payStatus:o.payStatus}:null;
-  if(!localOnly&&ENDPOINT){r.textContent="Memeriksa…"; var j=await pullStatus(id); if(j)rs={status:j.status,payStatus:j.payStatus}}
+  if(!localOnly&&ENDPOINT){r.textContent="Memeriksa…"; var j=await pullStatus(id,v("cek4")); if(j)rs={status:j.status,payStatus:j.payStatus}}
   r.textContent="";
   if(!rs){r.textContent="Pesanan tidak ditemukan.";return}
   r.appendChild(document.createTextNode("Status "+id.toUpperCase()+": "));
