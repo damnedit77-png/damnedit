@@ -121,6 +121,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .scroll{overflow-x:auto}
 .lnk{display:inline-block;text-decoration:none;margin-top:12px}
 .btn.g{background:rgba(255,255,255,.12);color:var(--tx)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
 .ld{position:fixed;inset:0;z-index:50;background:rgba(11,30,60,.94);display:grid;place-items:center}
 .ldb{text-align:center;width:min(80vw,320px)}
 .ldb p{margin:18px 0 0;font-weight:600}
@@ -184,7 +185,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
     </section>
 
     <section class="pane" id="p1">
-      <details class="card" id="cek"><summary style="cursor:pointer;color:var(--y);font-weight:600">Cek status pesanan</summary><div style="display:flex;gap:8px;margin-top:10px"><input id="cekid" type="text" placeholder="Nomor pesanan, mis. DE-XXXX" autocapitalize="characters" autocomplete="off"><button type="button" class="btn y" id="cekb">Cek</button></div><input id="cek4" type="text" inputmode="numeric" maxlength="4" placeholder="4 digit terakhir WhatsApp" autocomplete="off" style="margin-top:8px"><p class="sub" id="cekr" style="margin:10px 0 0"></p></details>
+      <details class="card" id="cek"><summary style="cursor:pointer;color:var(--y);font-weight:600">Cek status pesanan</summary><div style="display:flex;gap:8px;margin-top:10px"><input id="cekid" type="text" placeholder="Nomor pesanan, mis. DE-XXXX" autocapitalize="characters" autocomplete="off"><button type="button" class="btn y" id="cekb">Cek</button></div><input id="cek4" type="text" inputmode="numeric" maxlength="4" placeholder="4 digit terakhir WhatsApp" autocomplete="off" style="margin-top:8px"><p class="sub" id="cekr" style="margin:10px 0 0"></p><div id="cekh"></div></details>
       <h2>Pilih layanan</h2><p class="sub" id="svcsub">Boleh lebih dari satu.</p>
       <div class="grid" id="svc"></div>
       <div class="box" id="pgBox" hidden><div class="rg"><label for="pg">Total halaman</label><div class="stp"><button type="button" data-step="-1" data-for="pg" aria-label="Kurangi halaman">−</button><input id="pg" type="text" inputmode="numeric" value="50"><button type="button" data-step="1" data-for="pg" aria-label="Tambah halaman">+</button></div></div></div>
@@ -213,6 +214,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
         <p class="sub" id="osum"></p><div id="donepay" style="text-align:left"></div>
         <p><button type="button" class="btn y big" id="paidBtn" hidden>Saya sudah bayar</button> <button type="button" class="btn g big" id="refBtn">Refresh Status</button></p>
         <p class="sub" id="refm"></p>
+        <div id="hasilBox" style="text-align:left"></div>
         <p class="sub">Admin menghubungi lewat WhatsApp untuk konfirmasi harga dan jadwal.</p>
         <p><a class="btn c" id="waBtn" href="#" target="_blank" rel="noopener" hidden style="display:inline-block;text-decoration:none">Konfirmasi via WhatsApp</a></p>
         <p><button type="button" class="btn y big" id="home">Kembali ke beranda</button> <button type="button" class="btn g big" id="bkAdm" hidden>← Kembali ke Admin</button></p>
@@ -559,7 +561,7 @@ function adminUpdate(o,patch,all,remote){
   return req.then(function(){return ""},function(e){return e.message==="Failed to fetch"?"Koneksi gagal; perubahan hanya tersimpan di perangkat ini.":e.message}).then(function(msg){adminRender(all,remote); if(msg)$("admnote").textContent=msg});
 }
 function viewAsClient(o){
-  fillDone(o); $("paidBtn").hidden=true; $("refm").textContent="";
+  fillDone(o); $("paidBtn").hidden=true; $("refm").textContent=""; $("hasilBox").innerHTML="";
   $("mdl").hidden=true; $("admin").hidden=true; $("client").hidden=false;
   show(4); $("tabs").hidden=true; $("bar").hidden=true; $("aiRes").hidden=true; $("waBtn").hidden=true; $("bkAdm").hidden=false;
 }
@@ -587,6 +589,7 @@ function openDetail(o,all,remote){
     ul.appendChild(li);
   });
   c.appendChild(ul);
+  hasilAdmin(c,o,all,remote);
   var r=mk("div"); r.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"; c.appendChild(r);
   if(o.payStatus!=="success"){var cb=mk("button","btn y big","✓ Konfirmasi Pembayaran"); cb.type="button"; cb.onclick=function(){cb.disabled=true; adminUpdate(o,{payStatus:"success"},all,remote).then(function(){openDetail(o,all,remote)})}; r.appendChild(cb)}
   var vb=mk("button","btn c big","Lihat sebagai Klien"); vb.type="button"; vb.onclick=function(){viewAsClient(o)}; r.appendChild(vb);
@@ -645,7 +648,7 @@ function fixOrder(o){
   if(!o||typeof o!=="object")return o;
   o.status=norm(o.status); o.payStatus=PAYST[o.payStatus]?o.payStatus:"pending";
   if(typeof o.svc==="string")o.svc=[o.svc]; else if(!Array.isArray(o.svc))o.svc=[];
-  if(!Array.isArray(o.fileLinks))o.fileLinks=[]; if(!Array.isArray(o.filesMeta))o.filesMeta=[];
+  if(!Array.isArray(o.fileLinks))o.fileLinks=[]; if(!Array.isArray(o.filesMeta))o.filesMeta=[]; if(!Array.isArray(o.hasil))o.hasil=[];
   return o;
 }
 function migrate(){try{var a=JSON.parse(localStorage.getItem("damnedit_orders")||"[]"); if(Array.isArray(a)){a.forEach(fixOrder); localStorage.setItem("damnedit_orders",JSON.stringify(a))}}catch(e){}}
@@ -691,6 +694,56 @@ function pullStatus(id,last4){ // ambil status terbaru dari server (lintas peran
     return j;
   }).catch(function(){return null});
 }
+// ---------- hasil pekerjaan: klien mengunduh setelah bayar ----------
+function l4of(id,x){x=String(x||"").trim(); if(x)return x; var lo=findLocal(id); return lo&&lo.wa?String(lo.wa).replace(/\D/g,"").slice(-4):""}
+function renderHasil(box,id,last4,j){ // daftar hasil; tombol Unduh terkunci sampai pembayaran sukses (penjagaan sebenarnya di server)
+  box.innerHTML=""; var L=j&&j.hasil; if(!L||!L.length)return;
+  var ok=j.payStatus==="success";
+  var t=mk("div","zt","Hasil pekerjaan"); t.style.marginTop="14px"; box.appendChild(t);
+  if(!ok)box.appendChild(mk("p","sub","Hasil sudah siap. Unduhan terbuka setelah pembayaran dikonfirmasi admin."));
+  var msg=mk("p","sub"); msg.style.color="var(--err)";
+  var ul=mk("ul","files");
+  L.forEach(function(f){
+    var li=mk("li"); li.appendChild(mk("span",null,(ok?"":"🔒 ")+f.name+" ("+fsize(f.size)+")"));
+    var b=mk("button","btn "+(ok?"c":"g")+" big",ok?"Unduh":"Terkunci"); b.type="button"; b.disabled=!ok;
+    if(ok)b.onclick=function(){dlHasil(id,last4,f.n,b,msg)};
+    li.appendChild(b); ul.appendChild(li);
+  });
+  box.appendChild(ul); box.appendChild(msg);
+}
+function dlHasil(id,last4,n,b,msg){
+  var tx=b.textContent; b.disabled=true; b.textContent="Menyiapkan…"; msg.textContent="";
+  fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"download",id:id,last4:last4,n:n})}).then(function(r){return r.json()}).then(function(j){
+    if(!j.ok)throw new Error(j.error||"Gagal mengunduh.");
+    var bin=atob(j.data),u=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    var url=URL.createObjectURL(new Blob([u],{type:j.type||"application/octet-stream"})), a=document.createElement("a");
+    a.href=url; a.download=j.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url)},30000);
+  }).catch(function(e){msg.textContent=e.message==="Failed to fetch"?"Koneksi gagal. Coba lagi.":e.message}).then(function(){b.disabled=false;b.textContent=tx});
+}
+function hasilAdmin(c,o,all,remote){ // admin: daftar hasil + tombol Unggah hasil
+  var t=mk("div","zt","Hasil pekerjaan (untuk klien)"); t.style.marginTop="14px"; c.appendChild(t);
+  var ul=mk("ul","files");
+  if(!o.hasil.length)ul.appendChild(mk("li",null,"Belum ada hasil yang diunggah."));
+  o.hasil.forEach(function(f){
+    var li=mk("li"); li.appendChild(mk("span",null,f.name+" ("+fsize(f.size)+")"));
+    if(f.url&&/^https:\/\/(drive|docs)\.google\.com\//.test(f.url)){var a=mk("a","btn c big","Buka"); a.href=f.url; a.target="_blank"; a.rel="noopener"; li.appendChild(a)}
+    ul.appendChild(li);
+  });
+  c.appendChild(ul);
+  if(!ENDPOINT){c.appendChild(mk("p","sub","Unggah hasil butuh koneksi ke Google Apps Script."));return}
+  c.appendChild(mk("p","sub",o.payStatus==="success"?"Pembayaran sudah sukses: klien bisa mengunduh.":"Klien baru bisa mengunduh setelah pembayaran Sukses ✓."));
+  var msg=mk("p","sub"); msg.style.color="var(--err)";
+  var lb=mk("label","btn y big lnk","Unggah hasil"), inp=document.createElement("input"); inp.type="file"; inp.style.display="none"; lb.appendChild(inp);
+  inp.onchange=function(){
+    var f=inp.files[0]; if(!f)return;
+    if(f.size>10*1024*1024){msg.textContent="File melebihi 10 MB. Kirim lewat WhatsApp."; inp.value=""; return}
+    msg.style.color="var(--y)"; msg.textContent="Mengunggah "+f.name+"…";
+    b64(f).then(function(x){return fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"deliver",key:(sess()||{}).k,id:o.id,name:x.name,type:x.type,data:x.data})})})
+      .then(function(r){return r.json()}).then(function(j){if(!j.ok)throw new Error(j.error||"Gagal mengunggah."); o.hasil=j.hasil; openDetail(o,all,remote)})
+      .catch(function(e){msg.style.color="var(--err)"; msg.textContent=e.message==="Failed to fetch"?"Koneksi gagal. Coba lagi.":e.message; inp.value=""});
+  };
+  c.appendChild(lb); c.appendChild(msg);
+}
 function fillDone(o){
   $("oid").textContent=o.id; setBadge($("ost"),o.status); setPay($("opay"),o.payStatus);
   $("otot").textContent=rp(+o.total||0); $("osum").textContent=o.svc.join(", ")+(o.exp?" · ekspres":"")+" · "+(o.pay||"-");
@@ -704,7 +757,7 @@ async function doCek(localOnly){
   var r=$("cekr"), id=v("cekid"); r.textContent="";
   if(!id){r.textContent="Masukkan nomor pesanan.";return}
   var o=findLocal(id), rs=o?{status:o.status,payStatus:o.payStatus}:null;
-  if(!localOnly&&ENDPOINT){r.textContent="Memeriksa…"; var j=await pullStatus(id,v("cek4")); if(j)rs={status:j.status,payStatus:j.payStatus}}
+  if(!localOnly&&ENDPOINT){r.textContent="Memeriksa…"; $("cekh").innerHTML=""; var j=await pullStatus(id,v("cek4")); if(j){rs={status:j.status,payStatus:j.payStatus}; renderHasil($("cekh"),id,l4of(id,v("cek4")),j)}}
   r.textContent="";
   if(!rs){r.textContent="Pesanan tidak ditemukan.";return}
   r.appendChild(document.createTextNode("Status "+id.toUpperCase()+": "));
@@ -724,7 +777,7 @@ $("refBtn").onclick=function(){
   var id=$("oid").textContent, m=$("refm"); if(!id)return;
   if(!ENDPOINT){m.textContent="Mode lokal: status mengikuti perangkat ini.";syncDone(id);return}
   m.textContent="Memperbarui…";
-  pullStatus(id).then(function(j){if(j){syncDone(id,j);m.textContent="Diperbarui "+new Date().toLocaleTimeString("id-ID")}else m.textContent="Belum bisa terhubung ke server. Coba lagi."});
+  pullStatus(id).then(function(j){if(j){syncDone(id,j);renderHasil($("hasilBox"),id,l4of(id,""),j);m.textContent="Diperbarui "+new Date().toLocaleTimeString("id-ID")}else m.textContent="Belum bisa terhubung ke server. Coba lagi."});
 };
 $("paidBtn").onclick=function(){
   var id=$("oid").textContent; if(!id)return;
@@ -764,7 +817,7 @@ document.addEventListener("DOMContentLoaded",function(){ // sembunyikan badge Ne
 function home(){
   S.sel={};S.pptEl=[];S.pages=50;S.slides=15;S.exp=false;S.pay="";S.files={naskah:[],ai1:[],ai2:[]};
   [].forEach.call(document.querySelectorAll("#client input"),function(e){if(e.type==="checkbox"||e.type==="radio")e.checked=false;else if(e.type!=="file")e.value=e.id==="pg"?50:e.id==="sl"?15:""});
-  $("tabs").hidden=false;$("aiRes").hidden=true;$("waBtn").hidden=true;$("payinfo").innerHTML="";$("donepay").innerHTML="";$("bkAdm").hidden=true;$("refm").textContent="";
+  $("tabs").hidden=false;$("aiRes").hidden=true;$("waBtn").hidden=true;$("payinfo").innerHTML="";$("donepay").innerHTML="";$("bkAdm").hidden=true;$("refm").textContent="";$("hasilBox").innerHTML="";$("cekh").innerHTML="";
   show(0);upd();
 }
 $("home").onclick=home;
