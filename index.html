@@ -181,10 +181,10 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
         <label class="f" for="email">Email aktif</label><input id="email" type="email" autocomplete="email" placeholder="nama@gmail.com">
         <label class="f" for="wa">Nomor WhatsApp</label><input id="wa" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx">
       </div>
-      <details class="card" id="cek"><summary style="cursor:pointer;color:var(--y);font-weight:600">Cek status pesanan</summary><div style="display:flex;gap:8px;margin-top:10px"><input id="cekid" type="text" placeholder="Nomor pesanan, mis. DE-XXXX" autocapitalize="characters" autocomplete="off"><button type="button" class="btn y" id="cekb">Cek</button></div><input id="cek4" type="text" inputmode="numeric" maxlength="4" placeholder="4 digit terakhir WhatsApp" autocomplete="off" style="margin-top:8px"><p class="sub" id="cekr" style="margin:10px 0 0"></p></details>
     </section>
 
     <section class="pane" id="p1">
+      <details class="card" id="cek"><summary style="cursor:pointer;color:var(--y);font-weight:600">Cek status pesanan</summary><div style="display:flex;gap:8px;margin-top:10px"><input id="cekid" type="text" placeholder="Nomor pesanan, mis. DE-XXXX" autocapitalize="characters" autocomplete="off"><button type="button" class="btn y" id="cekb">Cek</button></div><input id="cek4" type="text" inputmode="numeric" maxlength="4" placeholder="4 digit terakhir WhatsApp" autocomplete="off" style="margin-top:8px"><p class="sub" id="cekr" style="margin:10px 0 0"></p></details>
       <h2>Pilih layanan</h2><p class="sub" id="svcsub">Boleh lebih dari satu.</p>
       <div class="grid" id="svc"></div>
       <div class="box" id="pgBox" hidden><div class="rg"><label for="pg">Total halaman</label><div class="stp"><button type="button" data-step="-1" data-for="pg" aria-label="Kurangi halaman">−</button><input id="pg" type="text" inputmode="numeric" value="50"><button type="button" data-step="1" data-for="pg" aria-label="Tambah halaman">+</button></div></div></div>
@@ -427,10 +427,65 @@ $("oth").oninput=othLink; othLink();
 function showLd(t){$("ldt").textContent=t;$("ld").hidden=false}
 function hideLd(){$("ld").hidden=true}
 function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+// ---------- prompt Claude untuk admin ----------
+// Mengubah teks jadi "file" kecil (base64) supaya ikut diunggah bersama file klien
+function txtFile(name,text){var b=new TextEncoder().encode(text),s="";for(var i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return{name:name,type:"text/plain",data:btoa(s)}}
+// Menyusun prompt siap tempel ke Claude sesuai layanan yang dipilih (layanan AI dilewati)
+function buildPrompt(c){
+  var sv=ids().filter(function(s){return !s.ai});
+  if(!sv.length)return "";
+  var pg=S.pages,sl=S.slides,th=S.pptEl.slice(),ot=$("pptx")?v("pptx"):"";
+  if(ot)th.push(ot);
+  var B={
+    proof:["PROOFREADING - "+pg+" halaman",
+      "Periksa ejaan (mengacu PUEBI), typo, dan tanda baca pada naskah terlampir.",
+      "Jangan mengubah makna, gaya, atau istilah teknis penulis.",
+      "Tandai setiap perubahan: pakai pelacak perubahan (tracked changes) bila bisa, atau daftar sebelum -> sesudah.",
+      "Akhiri dengan ringkasan jenis kesalahan yang paling sering muncul."],
+    edit:["EDITING - "+pg+" halaman",
+      "Perbaiki kalimat agar efektif, tata bahasa benar, dan paragraf runtut (kohesi dan koherensi).",
+      "Pertahankan gagasan, data, istilah teknis, dan sitasi penulis. Pangkas kalimat bertele-tele tanpa menghilangkan isi.",
+      "Tandai setiap perubahan (pelacak perubahan atau daftar sebelum -> sesudah). Beri catatan singkat bila ada bagian yang maknanya meragukan, jangan ditebak."],
+    fmt:["FORMAT SKRIPSI - "+pg+" halaman",
+      "Rapikan format sesuai pedoman kampus. Bila pedoman tidak terlampir, tanyakan dulu: nama kampus, margin, jenis dan ukuran font, spasi, penomoran halaman.",
+      "Cakupan: margin, hierarki heading, penomoran halaman, daftar isi, daftar tabel dan gambar, spasi, dan penomoran bab.",
+      "Hasilkan dokumen Word yang rapi dengan daftar isi otomatis, plus daftar singkat apa saja yang diubah."],
+    cite:["SITASI MANUAL - "+pg+" halaman",
+      "Periksa dan susun sitasi dalam teks serta daftar pustaka. Gaya sitasi: ikuti pedoman terlampir. Bila tidak ada, tanyakan (APA, IEEE, dll.).",
+      "Cocokkan setiap sitasi dalam teks dengan entri daftar pustaka, dan sebaliknya. Tandai yang hilang atau tidak lengkap.",
+      "Jangan mengarang referensi, penulis, tahun, atau DOI. Entri yang datanya kurang ditandai [LENGKAPI], bukan ditebak."],
+    ppt:["PPT - "+sl+" slide",
+      "Buat presentasi PowerPoint dari bahan terlampir, tepat "+sl+" slide (sudah termasuk slide judul dan penutup).",
+      "Langkah: (a) baca semua bahan, (b) tulis kerangka singkat judul tiap slide, (c) langsung buat filenya tanpa menunggu persetujuan.",
+      "Isi: satu gagasan per slide, maksimal 5 poin per slide, tiap poin maksimal 12 kata. Susun alur logis: pembuka, isi, kesimpulan. Pertahankan angka, istilah, dan sitasi dari bahan; jangan menambah fakta baru.",
+      "Desain: font minimal 18 pt, kontras tinggi, warna dan font konsisten, beri ruang kosong. Pakai diagram, ikon, atau grafik bila bahan memuat data atau proses.",
+      th.length?"Tema visual: "+th.join(", ")+". Terapkan lewat palet warna, bentuk, dan nuansa umum bertema itu. Jangan memakai gambar resmi, logo, atau karakter berhak cipta.":"Tema visual: bersih dan profesional, pilih 2-3 warna yang cocok dengan topik.",
+      "Tambahkan catatan pembicara singkat (2-3 kalimat) di tiap slide bila bahan cukup."]
+  };
+  var out=["=== CATATAN UNTUK ADMIN (bagian ini tidak perlu disalin) ===",
+    "Layanan: "+c.L.map(function(x){return x[0]}).join(", "),
+    "Mode ekspres: "+(S.exp?"YA (utamakan pengerjaan)":"tidak"),
+    "Cara pakai: buka Claude, lampirkan file klien dari folder yang sama dengan file ini, lalu salin semua teks di bawah garis ke kolom chat.",
+    "","=== SALIN MULAI DARI BARIS INI ===","",
+    "Kamu adalah editor dan desainer dokumen profesional berbahasa Indonesia. Kerjakan pesanan di bawah ini memakai file yang saya lampirkan pada percakapan ini.","",
+    "ATURAN UMUM",
+    "- Gunakan Bahasa Indonesia.",
+    "- Jangan mengarang fakta, kutipan, atau referensi.",
+    "- Bila ada informasi penting yang kurang, ajukan paling banyak 3 pertanyaan singkat sekaligus sebelum mulai.",
+    "- Jaga isi dokumen tetap rahasia."];
+  sv.forEach(function(s,i){
+    var b=B[s.id]; if(!b)return;
+    out.push("","TUGAS "+(i+1)+": "+b[0]);
+    b.slice(1).forEach(function(x){out.push("- "+x)});
+  });
+  out.push("","KELUARAN","- Kirim hasil sebagai file yang bisa diunduh (Word untuk naskah, PowerPoint untuk slide).","- Tutup dengan ringkasan tiga baris: apa yang dikerjakan dan asumsi yang kamu pakai.");
+  return out.join("\n");
+}
 // ---------- kirim ke Google Apps Script ----------
 function b64(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res({name:f.name,type:f.type||"application/octet-stream",data:String(r.result).split(",")[1]})};r.onerror=function(){rej(new Error("Gagal membaca "+f.name))};r.readAsDataURL(f)})}
 async function kirimOrder(c){
   var enc=await Promise.all(S.files.naskah.map(b64));
+  var pr=buildPrompt(c); if(pr)enc.push(txtFile("PROMPT-CLAUDE.txt",pr)); // prompt ikut tersimpan di folder file klien
   var p={nama:v("nama"),email:v("email"),wa:v("wa"),layanan:c.L.map(function(x){return x[0]}).join(", "),halaman:needPg()?String(S.pages):"",slide:S.sel.ppt?String(S.slides):"",ekspres:S.exp,estimasi:c.t,metode_bayar:S.pay,payStatus:"pending",files:enc};
   var ac=new AbortController(),t=setTimeout(function(){ac.abort()},120000);
   try{
@@ -674,8 +729,12 @@ $("refBtn").onclick=function(){
 $("paidBtn").onclick=function(){
   var id=$("oid").textContent; if(!id)return;
   var o=findLocal(id), msg="Halo Admin DAMNEDIT, saya sudah membayar pesanan "+id+" ("+rp(o?+o.total||0:0)+") via "+(o?o.pay:"-")+". Mohon dicek.";
+  var l4=String((o&&o.wa)||v("wa")).replace(/\D/g,"").slice(-4); // 4 digit terakhir WhatsApp untuk verifikasi
   saveLocal(id,{payStatus:"pending_confirm"}); // juga memicu refreshView -> badge & tombol diperbarui
-  if(ENDPOINT)fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"paid",id:id})}).catch(function(){console.warn("Gagal mengirim kabar bayar")});
+  if(ENDPOINT)fetch(ENDPOINT,{method:"POST",body:JSON.stringify({action:"paid",id:id,last4:l4})})
+    .then(function(r){return r.json().catch(function(){return{ok:true}})})
+    .then(function(j){if(j&&j.ok===false)throw new Error(j.error||"Server menolak.")})
+    .catch(function(e){saveLocal(id,{payStatus:"pending"});$("refm").textContent="Kabar bayar belum terkirim ("+(e.message==="Failed to fetch"?"koneksi gagal":e.message)+"). Coba tekan tombol lagi."});
   notifyWA("DAMNEDIT: klien menyatakan SUDAH BAYAR, pesanan "+id+". Mohon cek mutasi lalu konfirmasi.");
   if(ADMIN_WA.indexOf("X")<0){var w=$("waBtn"); w.href="https://wa.me/"+ADMIN_WA.replace(/\D/g,"")+"?text="+encodeURIComponent(msg); w.textContent="Kirim kabar bayar via WhatsApp"; w.hidden=false}
   $("refm").textContent="Terkirim. Menunggu konfirmasi admin.";
