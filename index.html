@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DAMNEDIT">
-<title>DAMNEDIT</title>
-<meta property="og:image" content="https://damnedit.netlify.app/og.jpg">
+<meta name="apple-mobile-web-app-title" content="Damnedit">
+<title>Damnedit</title>
+  <meta property="og:image" content="https://damnedit.netlify.app/og.jpg">
 <meta property="og:title" content="DAMNEDIT - Jasa Editing Naskah, Skripsi dan PPT">
 <meta property="og:description" content="Proofreading, editing, skripsi, dan PPT. Pilih layanan, isi data, unggah file, lalu bayar. Status pesanan bisa dicek kapan saja.">
 <meta property="og:type" content="website">
@@ -20,6 +20,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://damnedit.netlify.app/og.jpg">
+
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%230a5b85'/><stop offset='1' stop-color='%232fb0a8'/></linearGradient><mask id='m'><rect width='64' height='64' fill='%23fff'/><rect x='22.8' y='19.8' width='34.4' height='40.4' fill='%23000'/></mask></defs><rect width='64' height='64' fill='url%28%23g%29'/><path d='M7 8H31L38 15V47L31 54H7Z M17 18H28V44H17Z' fill-rule='evenodd' fill='%23d9e84a' mask='url%28%23m%29'/><path d='M25 22H55V30.5H33.5V35.75H55V44.25H33.5V49.5H55V58H25Z' fill='%23fff'/></svg>">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 <style>
@@ -783,7 +784,7 @@ function adminRender(all,remote){
 // ---------- PWA ----------
 (function(){
   var icon="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#0b1e3c"/><polygon points="0,0 88,0 120,32 120,120 0,120" fill="#22d3ee"/><polygon points="30,28 74,28 92,46 92,74 74,92 30,92" fill="#0b1e3c"/><rect x="44" y="42" width="56" height="11" fill="#22d3ee"/><rect x="44" y="67" width="56" height="11" fill="#22d3ee"/></svg>');
-  var mf={name:"DAMNEDIT",short_name:"DAMNEDIT",start_url:location.origin+location.pathname,scope:location.origin+"/",display:"standalone",background_color:"#0b1e3c",theme_color:"#0b1e3c",icons:[{src:icon,sizes:"any",type:"image/svg+xml",purpose:"any"}]};
+  var mf={name:"Damnedit",short_name:"Damnedit",start_url:location.origin+location.pathname,scope:location.origin+"/",display:"standalone",background_color:"#0b1e3c",theme_color:"#0b1e3c",icons:[{src:icon,sizes:"any",type:"image/svg+xml",purpose:"any"}]};
   var l=document.createElement("link"); l.rel="manifest"; l.href="data:application/manifest+json,"+encodeURIComponent(JSON.stringify(mf)); document.head.appendChild(l);
   // Service worker harus berasal dari URL same-origin (blob: ditolak browser); server.js menyajikan /sw.js
   if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))
